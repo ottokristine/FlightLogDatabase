@@ -1,4 +1,4 @@
-Create database CurrencyTracker
+--Create database CurrencyTracker
 
 CREATE TABLE CurrencyTracker.dbo.Bulletin (
     ID INT IDENTITY(1,1) PRIMARY KEY,
@@ -7,44 +7,45 @@ CREATE TABLE CurrencyTracker.dbo.Bulletin (
 
 CREATE TABLE CurrencyTracker.dbo.Crew (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    FirstName VARCHAR(255),
-    LastName VARCHAR(255),
-    Email Varchar(255),
-    AdminFlag Int,
+    FirstName VARCHAR(255) NOT NULL,
+    LastName VARCHAR(255) NOT NULL,
+    Email Varchar(255) NOT NULL UNIQUE,
+    Password VARCHAR(255) NOT NULL,
+    AdminFlag Int NOT NULL,
     Constraint ckCrewAdminFlag check (AdminFlag in (0,1)),
 )
 
 CREATE TABLE CurrencyTracker.dbo.Site (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(255),
-    Prefix VARCHAR(255)
+    Name VARCHAR(255) NOT NULL,
+    Prefix VARCHAR(255) NOT NULL
 )
 
 CREATE TABLE CurrencyTracker.dbo.Acknowledges (
-    CrewId INT FOREIGN KEY REFERENCES Crew(ID),
-    BulletinId INT FOREIGN KEY REFERENCES Bulletin(ID),
+    CrewId INT FOREIGN KEY REFERENCES Crew(ID) NOT NULL,
+    BulletinId INT FOREIGN KEY REFERENCES Bulletin(ID) NOT NULL,
     PRIMARY KEY (CrewID,BulletinId)
 )
 
 CREATE TABLE CurrencyTracker.dbo.Requirement (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(255),
+    Name VARCHAR(255) NOT NULL,
     DaysValid INT,
-    NeverExpiresFlag INT,
+    NeverExpiresFlag INT NOT NULL,
     Constraint requirementNeverExpires check (NeverExpiresFlag in (0,1))
 )
 
 CREATE TABLE CurrencyTracker.dbo.FlightRequirement (
     ID INT PRIMARY KEY FOREIGN KEY References Requirement(ID),
-    RequiredLaunches INT,
-    RequiredRecoveries INT,
-    RequiredLowPass INT,
-    RequiredMissionTime DECIMAL
+    RequiredLaunches INT NOT NULL,
+    RequiredRecoveries INT NOT NULL,
+    RequiredLowPass INT NOT NULL,
+    RequiredMissionTime DECIMAL NOT NULL
 )
 
 CREATE TABLE CurrencyTracker.dbo.Activity (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(155)
+    Name VARCHAR(155) NOT NULL
 )
 
 CREATE TABLE CurrencyTracker.dbo.RequirementActivities (
@@ -55,7 +56,7 @@ CREATE TABLE CurrencyTracker.dbo.RequirementActivities (
 
 CREATE TABLE CurrencyTracker.dbo.Role (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(255),
+    Name VARCHAR(255) NOT NULL,
 )
 
 CREATE TABLE CurrencyTracker.dbo.RoleRequirements (
@@ -66,24 +67,29 @@ CREATE TABLE CurrencyTracker.dbo.RoleRequirements (
 
 CREATE TABLE CurrencyTracker.dbo.Mission (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    SiteId INT FOREIGN KEY REFERENCES Site(ID),
-    Date DATETIME,
-    LaunchNumber INT,
-    AVTailNumber INT
+    SiteId INT NOT NULL FOREIGN KEY REFERENCES Site(ID),
+    Date DATETIME NOT NULL,
+    LaunchNumber INT NOT NULL,
+    AVTailNumber INT NOT NULL
 )
 
 CREATE TABLE CurrencyTracker.dbo.Log (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Date DATETIME,
-    ActivityId INT FOREIGN KEY REFERENCES Activity(ID),
-    CrewID INT FOREIGN KEY REFERENCES Crew(ID)
+    Date DATETIME NOT NULL, 
+    ActivityId INT NOT NULL FOREIGN KEY REFERENCES Activity(ID),
+    CrewID INT NOT NULL FOREIGN KEY REFERENCES Crew(ID)
 )
 
 CREATE TABLE CurrencyTracker.dbo.FlightLog (
     ID INT FOREIGN KEY REFERENCES Log(ID) PRIMARY KEY,
-    MissionTime DECIMAL,
-    Launch INT,
-    Recovery INT,
-    NumberOfLowPasses INT,
-    RoleID INT FOREIGN KEY REFERENCES Role(ID)
+    MissionTime DECIMAL NOT NULL,
+    Launch INT NOT NULL,
+    Recovery INT NOT NULL,
+    NumberOfLowPasses INT NOT NULL,
+    RoleID INT NOT NULL FOREIGN KEY REFERENCES Role(ID)
+)
+
+CREATE TABLE CurrencyTracker.dbo.CrewRoles (
+    CrewId INT NOT NULL FOREIGN KEY REFERENCES Crew(ID),
+    RoleId INT NOT NULL FOREIGN KEY REFERENCES Role(ID)
 )
