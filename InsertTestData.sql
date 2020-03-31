@@ -52,14 +52,16 @@ Insert into RequirementActivities VALUES ((select ID from Requirement where name
 
 --create a few flight logs
 INSERT INTO MISSION VALUES ((select Id from Site where Prefix = 'DRG'),SYSDATETIME(),2,223)
+DECLARE @MissionId INT = SCOPE_IDENTITY();
 INSERT INTO Log VALUES(sysdatetime(),(select ID from Activity where name='Flight'),(select Id from Crew where FirstName = 'Zachary'))
 DECLARE @LogId INT = SCOPE_IDENTITY()
-Insert INTO FlightLog VALUES (@LogId,5,1,1,0,(select ID from Role where name = 'Basic Operator'))
+Insert INTO FlightLog VALUES (@LogId,@MissionId,5,1,1,0,(select ID from Role where name = 'Basic Operator'))
 
 INSERT INTO MISSION VALUES ((select Id from Site where Prefix = 'DRG'),SYSDATETIME(),3,224)
+SET @MissionId = SCOPE_IDENTITY()
 INSERT INTO Log VALUES(sysdatetime(),(select ID from Activity where name='Sim'),(select Id from Crew where FirstName = 'Zachary'))
-DECLARE @LogId INT = SCOPE_IDENTITY()
-Insert INTO FlightLog VALUES (@LogId,4,2,1,0,(select ID from Role where name = 'Basic Operator'))
+SET @LogId = SCOPE_IDENTITY()
+Insert INTO FlightLog VALUES (@LogId,@MissionId,4,2,1,0,(select ID from Role where name = 'Basic Operator'))
 
 --create an event log
 INSERT INTO LOG VALUES(SYSDATETIME(),(select ID from Activity where name='Background Check'),(select Id from Crew where FirstName = 'Zachary'))
@@ -69,6 +71,6 @@ INSERT INTO CrewRoles VALUES ((select Id from Crew where FirstName = 'Zachary'),
 
 --add an acknoweledgement to an FSB
 INSERT INTO Acknowledges VALUES ((select Id from Crew where FirstName = 'Zachary'), (select ID from Bulletin where Name = 'Switch out Engine on all -25 builds'))
-
-
+INSERT INTO Acknowledges VALUES ((select Id from Crew where FirstName = 'Kristine'), (select ID from Bulletin where Name = 'New GPS sofware available for download'))
+INSERT INTO Acknowledges VALUES ((select Id from Crew where FirstName = 'Kristine'), (select ID from Bulletin where Name = 'Switch out Engine on all -25 builds'))
 
