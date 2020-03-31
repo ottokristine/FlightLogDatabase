@@ -17,8 +17,8 @@ CREATE TABLE CurrencyTracker.dbo.Crew (
 
 CREATE TABLE CurrencyTracker.dbo.Site (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
-    Prefix VARCHAR(255) NOT NULL
+    Name VARCHAR(255) NOT NULL UNIQUE,
+    Prefix VARCHAR(255) NOT NULL UNIQUE
 )
 
 CREATE TABLE CurrencyTracker.dbo.Acknowledges (
@@ -29,7 +29,7 @@ CREATE TABLE CurrencyTracker.dbo.Acknowledges (
 
 CREATE TABLE CurrencyTracker.dbo.Requirement (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
+    Name VARCHAR(255) NOT NULL UNIQUE,
     DaysValid INT,
     NeverExpiresFlag INT NOT NULL,
     Constraint requirementNeverExpires check (NeverExpiresFlag in (0,1))
@@ -45,7 +45,7 @@ CREATE TABLE CurrencyTracker.dbo.FlightRequirement (
 
 CREATE TABLE CurrencyTracker.dbo.Activity (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(155) NOT NULL
+    Name VARCHAR(155) NOT NULL UNIQUE
 )
 
 CREATE TABLE CurrencyTracker.dbo.RequirementActivities (
@@ -56,7 +56,7 @@ CREATE TABLE CurrencyTracker.dbo.RequirementActivities (
 
 CREATE TABLE CurrencyTracker.dbo.Role (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(255) NOT NULL,
+    Name VARCHAR(255) NOT NULL UNIQUE,
 )
 
 CREATE TABLE CurrencyTracker.dbo.RoleRequirements (
@@ -81,7 +81,8 @@ CREATE TABLE CurrencyTracker.dbo.Log (
 )
 
 CREATE TABLE CurrencyTracker.dbo.FlightLog (
-    ID INT FOREIGN KEY REFERENCES Log(ID) PRIMARY KEY,
+    ID INT NOT NULL FOREIGN KEY REFERENCES Log(ID) PRIMARY KEY,
+    MissionID INT NOT NULL FOREIGN KEY REFERENCES Mission(Id),
     MissionTime DECIMAL NOT NULL,
     Launch INT NOT NULL,
     Recovery INT NOT NULL,
