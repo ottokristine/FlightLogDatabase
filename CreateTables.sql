@@ -22,8 +22,8 @@ CREATE TABLE CurrencyTracker.dbo.Site (
 )
 
 CREATE TABLE CurrencyTracker.dbo.Acknowledges (
-    CrewId INT FOREIGN KEY REFERENCES Crew(ID) NOT NULL,
-    BulletinId INT FOREIGN KEY REFERENCES Bulletin(ID) NOT NULL,
+    CrewId INT FOREIGN KEY REFERENCES Crew(ID) ON DELETE CASCADE NOT NULL,
+    BulletinId INT FOREIGN KEY REFERENCES Bulletin(ID) ON DELETE CASCADE NOT NULL,
     PRIMARY KEY (CrewID,BulletinId)
 )
 
@@ -36,7 +36,7 @@ CREATE TABLE CurrencyTracker.dbo.Requirement (
 )
 
 CREATE TABLE CurrencyTracker.dbo.FlightRequirement (
-    ID INT PRIMARY KEY FOREIGN KEY References Requirement(ID),
+    ID INT PRIMARY KEY FOREIGN KEY References Requirement(ID) ON DELETE CASCADE,
     RequiredLaunches INT NOT NULL,
     RequiredRecoveries INT NOT NULL,
     RequiredLowPass INT NOT NULL,
@@ -49,8 +49,8 @@ CREATE TABLE CurrencyTracker.dbo.Activity (
 )
 
 CREATE TABLE CurrencyTracker.dbo.RequirementActivities (
-    RequirementId INT FOREIGN KEY REFERENCES Requirement(ID),
-    ActivityId Int FOREIGN KEY REFERENCES Activity(ID),
+    RequirementId INT FOREIGN KEY REFERENCES Requirement(ID) ON DELETE CASCADE,
+    ActivityId Int FOREIGN KEY REFERENCES Activity(ID) ON DELETE CASCADE,
     PRIMARY KEY(RequirementId, ActivityId)
 )
 
@@ -60,14 +60,14 @@ CREATE TABLE CurrencyTracker.dbo.Role (
 )
 
 CREATE TABLE CurrencyTracker.dbo.RoleRequirements (
-    RequirementID INT FOREIGN KEY REFERENCES Requirement(Id),
-    RoleID INT FOREIGN KEY REFERENCES Role(Id),
+    RequirementID INT FOREIGN KEY REFERENCES Requirement(Id) ON DELETE CASCADE,
+    RoleID INT FOREIGN KEY REFERENCES Role(Id) ON DELETE CASCADE,
     PRIMARY KEY(RequirementId, RoleID)
 )
 
 CREATE TABLE CurrencyTracker.dbo.Mission (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    SiteId INT NOT NULL FOREIGN KEY REFERENCES Site(ID),
+    SiteId INT NOT NULL FOREIGN KEY REFERENCES Site(ID) ON DELETE CASCADE,
     Date DATETIME NOT NULL,
     LaunchNumber INT NOT NULL,
     AVTailNumber INT NOT NULL
@@ -76,8 +76,8 @@ CREATE TABLE CurrencyTracker.dbo.Mission (
 CREATE TABLE CurrencyTracker.dbo.Log (
     ID INT IDENTITY(1,1) PRIMARY KEY,
     Date DATETIME NOT NULL, 
-    ActivityId INT NOT NULL FOREIGN KEY REFERENCES Activity(ID),
-    CrewID INT NOT NULL FOREIGN KEY REFERENCES Crew(ID)
+    ActivityId INT NOT NULL FOREIGN KEY REFERENCES Activity(ID) ON DELETE CASCADE,
+    CrewID INT NOT NULL FOREIGN KEY REFERENCES Crew(ID) ON DELETE CASCADE
 )
 
 CREATE TABLE CurrencyTracker.dbo.FlightLog (
@@ -87,10 +87,10 @@ CREATE TABLE CurrencyTracker.dbo.FlightLog (
     Launch INT NOT NULL,
     Recovery INT NOT NULL,
     NumberOfLowPasses INT NOT NULL,
-    RoleID INT NOT NULL FOREIGN KEY REFERENCES Role(ID)
+    RoleID INT NOT NULL FOREIGN KEY REFERENCES Role(ID) ON DELETE CASCADE
 )
 
 CREATE TABLE CurrencyTracker.dbo.CrewRoles (
-    CrewId INT NOT NULL FOREIGN KEY REFERENCES Crew(ID),
-    RoleId INT NOT NULL FOREIGN KEY REFERENCES Role(ID)
+    CrewId INT NOT NULL FOREIGN KEY REFERENCES Crew(ID) ON DELETE CASCADE,
+    RoleId INT NOT NULL FOREIGN KEY REFERENCES Role(ID) ON DELETE CASCADE
 )
