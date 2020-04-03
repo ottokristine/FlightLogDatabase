@@ -6,12 +6,12 @@ CREATE OR ALTER PROCEDURE sp_getCrew
 AS
 BEGIN TRY
     SELECT * FROM Crew
-    FOR JSON PATH, ROOT('Crew')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 GO
 
@@ -20,12 +20,12 @@ CREATE OR ALTER PROCEDURE sp_getActivities
 AS
 BEGIN TRY
     SELECT * FROM Activity
-    FOR JSON PATH, ROOT('Activity')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 GO
@@ -35,12 +35,12 @@ CREATE OR ALTER PROCEDURE sp_getBulletins
 as 
 BEGIN TRY
     SELECT * FROM Bulletin
-    FOR JSON PATH, ROOT('Bulletins')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 GO
@@ -50,12 +50,12 @@ CREATE OR ALTER PROCEDURE sp_getRoles
 as 
 BEGIN TRY
     SELECT * FROM Role
-    FOR JSON PATH, ROOT('Roles')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 GO
@@ -65,12 +65,12 @@ CREATE OR ALTER PROCEDURE sp_getSites
 as 
 BEGIN TRY
     SELECT * FROM Site
-    FOR JSON PATH, ROOT('Sites')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 GO
@@ -80,12 +80,12 @@ CREATE OR ALTER PROCEDURE sp_getRequirements
 as 
 BEGIN TRY
     SELECT * FROM Requirement
-    FOR JSON PATH, ROOT('Requirements')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 GO
@@ -122,12 +122,12 @@ BEGIN TRY
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]
     from [Log] l
     Where l.CrewID = @CrewId
-    FOR JSON PATH, ROOT('Logs')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 GO
@@ -169,7 +169,7 @@ END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 GO
 
@@ -189,12 +189,12 @@ BEGIN TRY
         WHERE a.CrewId = @CrewId
     ) AS acknowledgedBulletins on acknowledgedBulletins.id = b.Id
     where acknowledgedBulletins.ID is null
-    FOR JSON PATH, ROOT('UnacknowledgedBulletins')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 Go
@@ -211,12 +211,12 @@ BEGIN TRY
         WHERE cr.CrewId = c.ID
         FOR JSON PATH) as [Roles]
     FROM Crew c 
-    FOR JSON PATH, ROOT('CrewRoles')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 Go
@@ -239,12 +239,12 @@ BEGIN TRY
         WHERE RR.RoleID = R.ID
         FOR JSON PATH) as [Requirements]
     FROM ROLE R
-    FOR JSON PATH, ROOT('RoleRequirementsActivities')
+    FOR JSON PATH
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 Go
@@ -286,7 +286,7 @@ END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, ROOT('Error')
+    FOR JSON PATH
 END CATCH 
 
 GO
