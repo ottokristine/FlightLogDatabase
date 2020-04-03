@@ -1,3 +1,5 @@
+USE [CurrencyTracker]
+GO
 
 --procedure for getting Crew objects
 CREATE OR ALTER PROCEDURE sp_getCrew
@@ -94,30 +96,30 @@ CREATE OR ALTER PROCEDURE sp_getAllLogsForUser
 as 
 BEGIN TRY
     select l.*,
-        (select * 
+        JSON_QUERY((select TOP 1 * 
         from Activity a
         where a.ID = l.ActivityId 
-        FOR JSON PATH) as [Activity],
-        (select * 
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Activity],
+        JSON_QUERY((select TOP 1 * 
         from Crew c
         where c.ID = l.CrewId
-        FOR JSON PATH) as [Crew],
-        (select *,
-            (select *,
-                (select * 
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Crew],
+        JSON_QUERY((select TOP 1 *,
+            JSON_QUERY((select TOP 1 *,
+                JSON_QUERY((select TOP 1* 
                 from Site s 
                 where s.ID = m.SiteId
-                FOR JSON PATH) as [Site]
+                FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Site]
             from Mission m
             where m.ID = f.MissionId
-            FOR JSON PATH) as [Mission],
-            (select * 
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Mission],
+            JSON_QUERY((select TOP 1 * 
             from Role r
             where r.ID = f.RoleID
-            FOR JSON PATH) as [Role]
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Role]
         from FlightLog f
         where f.ID = l.Id
-        FOR JSON PATH) as [FlightLog]
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]
     from [Log] l
     Where l.CrewID = @CrewId
     FOR JSON PATH, ROOT('Logs')
@@ -135,34 +137,34 @@ CREATE OR ALTER PROCEDURE sp_getLogForId
 @Id INT
 AS 
 BEGIN TRY
-    select l.*,
-        (select * 
+    select JSON_QUERY((SELECT TOP 1 l.*,
+        JSON_QUERY((select TOP 1 * 
         from Activity a
         where a.ID = l.ActivityId 
-        FOR JSON PATH) as [Activity],
-        (select * 
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Activity],
+        JSON_QUERY((select TOP 1 * 
         from Crew c
         where c.ID = l.CrewId
-        FOR JSON PATH) as [Crew],
-        (select *,
-            (select *,
-                (select * 
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Crew],
+        JSON_QUERY((select TOP 1 *,
+            JSON_QUERY((select TOP 1 *,
+                JSON_QUERY((select TOP 1* 
                 from Site s 
                 where s.ID = m.SiteId
-                FOR JSON PATH) as [Site]
+                FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Site]
             from Mission m
             where m.ID = f.MissionId
-            FOR JSON PATH) as [Mission],
-            (select * 
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Mission],
+            JSON_QUERY((select TOP 1 * 
             from Role r
             where r.ID = f.RoleID
-            FOR JSON PATH) as [Role]
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Role]
         from FlightLog f
         where f.ID = l.Id
-        FOR JSON PATH) as [FlightLog]
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]
     from [Log] l
     WHERE l.ID = @Id
-    FOR JSON PATH, ROOT('Log')
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -202,18 +204,14 @@ CREATE OR ALTER PROCEDURE sp_getRolesForCrew
 @CrewId INT 
 AS
 BEGIN TRY
-    SELECT cr.*,
-        (SELECT c.* 
-        FROM Crew c 
-        WHERE c.ID = cr.CrewId
-        FOR JSON PATH) as [Crew],
-        (SELECT r.* 
-        FROM Role r 
-        WHERE r.ID = cr.RoleID
-        FOR JSON PATH) as [Role]
-    FROM CrewRoles cr
-    WHERE cr.CrewId = @CrewId
-    FOR JSON PATH, Root('CrewRole')
+    SELECT c.*,
+        (SELECT * 
+        FROM CrewRoles cr
+        JOIN Role r ON cr.RoleId = r.ID
+        WHERE cr.CrewId = c.ID
+        FOR JSON PATH) as [Roles]
+    FROM Crew c 
+    FOR JSON PATH, ROOT('CrewRoles')
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -229,28 +227,18 @@ Go
 CREATE OR ALTER PROCEDURE sp_getRoleRequirementsActivities
 AS
 BEGIN TRY
-    SELECT rr.*,
-        (SELECT *
-        FROM Role r
-        where r.ID = rr.RoleID
-        FOR JSON PATH) as [Role],
-        (Select r.*,
-            (select fr.*
-            FROM FlightRequirement fr
-            where fr.ID = r.Id
-            FOR JSON PATH) as [FlightRequirement],
-            (select ra.*,
-                (select * 
-                from Activity a
-                WHERE a.ID = ra.ActivityId
-                FOR JSON PATH) as [Activity]
+    SELECT R.*,
+        (SELECT re.* 
+            ,(SELECT distinct a.*
             FROM RequirementActivities ra
-            where ra.RequirementId = r.ID
-            FOR JSON PATH) as [RequirementActivities]
-        from Requirement r
-        where r.Id = rr.RequirementID
-        FOR JSON PATH) as [Requirement]
-    FROM RoleRequirements rr
+            JOIN Activity a ON a.ID = ra.ActivityId
+            WHERE RR.RequirementId = ra.RequirementId
+            FOR JSON PATH) as [Activities]
+        FROM RoleRequirements rr
+        JOIN Requirement re on re.ID = rr.RequirementID
+        WHERE RR.RoleID = R.ID
+        FOR JSON PATH) as [Requirements]
+    FROM ROLE R
     FOR JSON PATH, ROOT('RoleRequirementsActivities')
 END TRY
 BEGIN CATCH
@@ -266,34 +254,34 @@ CREATE OR ALTER PROCEDURE sp_getMission
 @MissionId INT
 AS
 BEGIN TRY
-    Select m.*,
-        (SELECT * 
+    select JSON_QUERY((Select m.*,
+        JSON_QUERY((SELECT TOP 1 * 
         FROM Site s
         WHERE s.ID = m.siteId
-        FOR JSON PATH) as [Site],
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Site],
         (SELECT f.*,
-            (Select l.*,
-                (select * 
+            JSON_QUERY((Select TOP 1 l.*,
+                JSON_QUERY((select TOP 1 * 
                 from Activity a
                 where a.ID = l.ActivityId 
-                FOR JSON PATH) as [Activity],
-                (select * 
+                FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Activity],
+                JSON_QUERY((select TOP 1* 
                 from Crew c
                 where c.ID = l.CrewId
-                FOR JSON PATH) as [Crew]
+                FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Crew]
             FROM [Log] l
             WHERE l.ID = f.ID
-            FOR JSON PATH) as [Log],
-            (select * 
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Log],
+            JSON_QUERY((select TOP 1 * 
             from Role r
             where r.ID = f.RoleID
-            FOR JSON PATH) as [Role]
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Role]
         from FlightLog f
         WHERE f.missionId = m.ID
         FOR JSON PATH) as [FlightLogs]
     FROM Mission m
     where m.ID = @MissionId
-FOR JSON PATH, ROOT('Mission')
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
