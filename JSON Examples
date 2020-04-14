@@ -1,0 +1,131 @@
+--I'm handling updating vs. inserting on the backend. If you want to add, do not include an ID or send up an Id of 0, if you want to update, include the ID
+-each will start with the call in readable english, followed by the stored procedure name below. Each stored procedure will take the json format below it as a parameter. Parameter is named @json unless otherwise specified.
+--below specifies what the call will return
+--please note that other items can be included in the json, if its easier to leave them in but all the items shown must be included and it they are nested in any way, it must be nested in the same format (this really only applies to flight logs)
+
+Add Crew
+sp_addCrew
+{
+		"ID": 0
+        "FirstName": "Bilbo",
+        "LastName": "Baggins",
+        "Email": "bagginses@gmail.com",
+        "Password": "test",
+        "AdminFlag": 0
+}
+returns the Crew Object inserted/updated or error
+
+
+Add activity
+sp_addActivity
+{ 
+	"ID": 0
+	"Name": "New Activity"
+}
+
+Add Bulletin
+sp_addBulletin
+{
+        "ID": 4,
+        "Name": "This is a new bulletin Update Again"
+}
+returns the bulletin inserted/updated or error
+
+Add Log
+sp_AddLog
+--flight log
+{
+    "ID": 0,
+    "Date": "2020-04-01T00:19:10.957",
+    "ActivityId": 1,
+    "CrewID": 1,
+    "FlightLog": {
+        "ID": 0,
+        "MissionID": 1,
+        "MissionTime": 5,
+        "Launch": 1,
+        "Recovery": 1,
+        "NumberOfLowPasses": 0,
+        "RoleID": 1
+    }
+}
+--event log
+{
+    "ID": 0,
+    "Date": "2020-04-01T00:19:10.957",
+    "ActivityId": 1,
+    "CrewID": 3
+}
+returns the log/flightlog inserted/updated or error
+
+Add Role
+sp_AddNewRole
+
+{
+        "ID": 0,
+        "Name": "Site Lead"
+}
+returns the role inserted/updated or error
+
+Add Site
+sp_AddSite
+{
+        "ID": 0,
+        "Name": "Fake Site",
+        "Prefix": "FSS"
+ }
+returns the site inserted/updated or error
+
+ Add Requirement
+ sp_AddRequirement
+ --If the requirement never expires, do not pass up the DaysValid
+ {
+        "ID": 0,
+        "Name": "15 Day Check",
+        "NeverExpiresFlag": 1
+ }
+ -- if it does then include it
+ {
+        "ID": 0,
+        "Name": "16 Day Check",
+        "DaysValid": 3,
+        "NeverExpiresFlag": 0
+ }
+
+ returns the requirement inserted/updated or error
+
+ Add Crew Role
+ sp_addCrewRole
+ {
+        "CrewId": 1,
+        "RoleId": 1
+ }
+ returns all roles for the crew member updated
+
+ Add Role/Requirement (adds a relationship between the role and the requirement)
+ sp_addRoleRequiremet
+{
+        "RoleId": 4,
+        "RequirementId": 1
+}
+returns the whole role/requirement/activity json tree
+
+Add Requirement Activity
+sp_addRequirementActivity
+{
+        "ActivityId": 4,
+        "RequirementId": 2
+}
+returns the whole role/requirement/activity json tree
+
+Add Mission
+sp_addMission
+{
+	"ID": 2,
+    "SiteId": 1,
+    "Date": "2020-04-01T00:19:10.953",
+    "LaunchNumber": 5,
+    "AVTailNumber": 222
+}
+returns the mission inserted/updated (including all logs that may have been completed)
+
