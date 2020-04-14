@@ -43,10 +43,10 @@ BEGIN TRY
 
     END
 
-    SELECT *
+    Select (SELECT *
     FROM Crew 
     WHERE Id = @Id
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
 END TRY
 BEGIN CATCH
@@ -89,10 +89,10 @@ BEGIN TRY
         Where Id = @Id
     END
 
-    Select * 
+    Select (Select * 
     FROM Activity 
     where Id = @Id
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
 END TRY
 BEGIN CATCH
@@ -135,10 +135,10 @@ BEGIN TRY
         Where Id = @Id
     END
 
-    Select * 
+    SELECT (Select * 
     FROM Bulletin 
     where Id = @Id
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
 END TRY
 BEGIN CATCH
@@ -181,10 +181,10 @@ BEGIN TRY
         Where Id = @Id
     END
 
-    Select * 
+    SELECT (Select * 
     FROM Role 
     where Id = @Id
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
 END TRY
 BEGIN CATCH
@@ -229,10 +229,10 @@ BEGIN TRY
         Where Id = @Id
     END
 
-    Select * 
+    SELECT (Select * 
     FROM Site 
     where Id = @Id
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
 END TRY
 BEGIN CATCH
@@ -279,10 +279,10 @@ BEGIN TRY
         WHERE Id = @Id
     END
 
-    Select * 
+    SELECT (Select * 
     FROM Requirement 
     where Id = @Id
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
 END TRY
 BEGIN CATCH
@@ -416,10 +416,127 @@ BEGIN TRY
         Where ID = @Id
     END
 
-    
-
     exec sp_getMission @Id
     
+END TRY
+BEGIN CATCH
+    Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH
+END CATCH 
+
+GO
+
+--Select * from FlightLog
+--Select * from [Log]
+
+CREATE OR ALTER PROCEDURE sp_addLog
+@json VARCHAR(MAX)
+AS
+BEGIN TRY
+    DECLARE @LogTemp TABLE([Date] Date, ActivityId INT, CrewId INT)
+    DECLARE @FlightLogTemp TABLE(MissionId INT, MissionTime INT, Launch INT, [Recovery] INT, NumberOfPasses INT, RoleId INT)
+    DECLARE @Id INT = (Select Id
+    From OPENJSON(@json)
+    WITH (
+        Id INT
+    ))
+    DECLARE @NewId INT = @Id
+
+    DECLARE @FlightLogJson NVARCHAR(MAX) = 
+    (SELECT FlightLog
+    FROM OPENJSON(@json)
+    WITH (
+        FlightLog NVARCHAR(MAX) as JSON
+    ))
+
+    INSERT INTO @LogTemp
+    SELECT [Date], ActivityId, CrewID
+    FROM OPENJSON(@json)
+    WITH (
+        [Date] Date, 
+        ActivityId INT, 
+        CrewID INT
+    )
+
+    IF @Id IS NULL OR @Id = 0
+    BEGIN
+        INSERT INTO [Log]
+        SELECT * from @LogTemp
+
+        SET @NewId = SCOPE_IDENTITY()
+    END
+    ELSE 
+    BEGIN
+        UPDATE [Log]
+        SET [Date] = (SELECT [Date] from @LogTemp),
+        ActivityId = (SELECT ActivityId from @LogTemp),
+        CrewID = (SELECT CrewID from @LogTemp)
+        Where ID = @Id
+    END
+
+    IF @FlightLogJson IS NOT NULL
+    BEGIN 
+        SET @Id = (Select Id
+        From OPENJSON(@FlightLogJson)
+        WITH (
+        Id INT
+        ))
+
+        PRINT @FlightLogJson
+
+        INSERT INTO @FlightLogTemp
+        SELECT MissionID INT, MissionTime INT, Launch INT, [Recovery] INT, NumberOfLowPasses INT, RoleId INT
+        FROM OPENJSON(@FlightLogJson)
+        WITH (
+            MissionID INT, 
+            MissionTime INT, 
+            Launch INT, 
+            [Recovery] INT, 
+            NumberOfLowPasses INT, 
+            RoleID INT
+        )
+        PRINT @NewId
+        select * from FlightLog
+        IF @Id IS NULL OR @Id = 0
+        BEGIN 
+            INSERT INTO FlightLog
+            SELECT 
+            @NewId, 
+            MissionID, 
+            MissionTime, 
+            Launch, 
+            [Recovery], 
+            NumberOfPasses, 
+            RoleID
+            FROM @FlightLogTemp
+        END
+        ELSE 
+        BEGIN 
+            UPDATE FlightLog
+            SET MissionId = (select MissionId from @FlightLogTemp), 
+            MissionTime= (select MissionTime from @FlightLogTemp), 
+            Launch = (select Launch from @FlightLogTemp), 
+            [Recovery] = (select [Recovery] from @FlightLogTemp), 
+            NumberOfLowPasses = (select NumberOfPasses from @FlightLogTemp), 
+            RoleId = (select RoleID from @FlightLogTemp)
+            WHERE ID = @Id
+        END
+
+        SELECT (Select l.*,
+        JSON_QUERY((SELECT * from FlightLog
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]  
+        from [Log] l
+        WHERE ID = @Id
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+
+    END
+    ELSE 
+    BEGIN
+        SELECT (Select * from [Log] 
+        WHERE ID = @Id
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+    END
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
