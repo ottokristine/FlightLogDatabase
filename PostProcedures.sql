@@ -6,10 +6,10 @@ CREATE OR ALTER PROCEDURE sp_addCrew
 @json VARCHAR(MAX)
 AS
 BEGIN TRY
-    DECLARE @Id INT = (Select Id
+    DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
-        Id INT
+        ID INT
     ))
     DECLARE @TempCrew TABLE(FirstName VARCHAR(255),LastName VARCHAR(255),Email VARCHAR(255),Password VARCHAR(255),AdminFlag INT)
 
@@ -62,10 +62,10 @@ CREATE OR ALTER PROCEDURE sp_addActivity
 AS
 BEGIN TRY
     DECLARE @TempActivity TABLE(Name VARCHAR(255))
-    DECLARE @Id INT = (Select Id
+    DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
-        Id INT
+        ID INT
     ))
 
     INSERT INTO @TempActivity
@@ -108,10 +108,10 @@ CREATE OR ALTER PROCEDURE sp_addBulletin
 AS
 BEGIN TRY
     DECLARE @TempBulletin TABLE(Name VARCHAR(255))
-    DECLARE @Id INT = (Select Id
+    DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
-        Id INT
+        ID INT
     ))
 
     INSERT INTO @TempBulletin
@@ -149,15 +149,15 @@ END CATCH
 
 GO
 
-CREATE OR ALTER PROCEDURE sp_addRole
+CREATE OR ALTER PROCEDURE sp_addNewRole
 @json VARCHAR(MAX)
 AS
 BEGIN TRY
     DECLARE @TempRole TABLE(Name VARCHAR(255))
-    DECLARE @Id INT = (Select Id
+    DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
-        Id INT
+        ID INT
     ))
 
     INSERT INTO @TempRole
@@ -169,20 +169,21 @@ BEGIN TRY
 
     If @Id IS NULL OR @Id = 0
     BEGIN
-        INSERT INTO Role
+    PRINT 'NEW ROLE'
+        INSERT INTO [CurrencyTracker].dbo.Role
         Select * from @TempRole
 
         SET @Id = SCOPE_IDENTITY()
     END
     ELSE
     BEGIN
-        UPDATE Bulletin
+        UPDATE [CurrencyTracker].dbo.Role
         Set Name = (Select Name from @TempRole)
         Where Id = @Id
     END
 
     SELECT (Select * 
-    FROM Role 
+    FROM [CurrencyTracker].dbo.Role 
     where Id = @Id
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
@@ -248,10 +249,10 @@ CREATE OR ALTER PROCEDURE sp_addRequirement
 AS
 BEGIN TRY
     DECLARE @TempRequirement TABLE(Name VARCHAR(255), DaysValid INT, NeverExpiresFlag INT)
-    DECLARE @Id INT = (Select Id
+    DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
-        Id INT
+        ID INT
     ))
 
     INSERT INTO @TempRequirement
@@ -385,10 +386,10 @@ CREATE OR ALTER PROCEDURE sp_addMission
 AS
 BEGIN TRY
     DECLARE @temp TABLE(SiteId INT, missionDate Date, LaunchNumber INT, AVTailNumber INT)
-    DECLARE @Id INT = (Select Id
+    DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
-        Id INT
+        ID INT
     ))
 
     INSERT INTO @temp
@@ -405,6 +406,8 @@ BEGIN TRY
     BEGIN
         INSERT INTO Mission
         Select * from @temp
+
+        SET @ID = SCOPE_IDENTITY()
     END
     ELSE 
     BEGIN
@@ -427,8 +430,6 @@ END CATCH
 
 GO
 
---Select * from FlightLog
---Select * from [Log]
 
 CREATE OR ALTER PROCEDURE sp_addLog
 @json VARCHAR(MAX)
@@ -436,12 +437,12 @@ AS
 BEGIN TRY
     DECLARE @LogTemp TABLE([Date] Date, ActivityId INT, CrewId INT)
     DECLARE @FlightLogTemp TABLE(MissionId INT, MissionTime INT, Launch INT, [Recovery] INT, NumberOfPasses INT, RoleId INT)
-    DECLARE @Id INT = (Select Id
+    DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
-        Id INT
+        ID INT
     ))
-    DECLARE @NewId INT = @Id
+    DECLARE @FlightLogId INT
 
     DECLARE @FlightLogJson NVARCHAR(MAX) = 
     (SELECT FlightLog
@@ -464,7 +465,7 @@ BEGIN TRY
         INSERT INTO [Log]
         SELECT * from @LogTemp
 
-        SET @NewId = SCOPE_IDENTITY()
+        SET @Id = SCOPE_IDENTITY()
     END
     ELSE 
     BEGIN
@@ -477,10 +478,10 @@ BEGIN TRY
 
     IF @FlightLogJson IS NOT NULL
     BEGIN 
-        SET @Id = (Select Id
+        SET @FlightLogId = (Select ID
         From OPENJSON(@FlightLogJson)
         WITH (
-        Id INT
+        ID INT
         ))
 
         PRINT @FlightLogJson
@@ -496,13 +497,11 @@ BEGIN TRY
             NumberOfLowPasses INT, 
             RoleID INT
         )
-        PRINT @NewId
-        select * from FlightLog
-        IF @Id IS NULL OR @Id = 0
+        IF @FlightLogId IS NULL OR @Id = 0
         BEGIN 
             INSERT INTO FlightLog
             SELECT 
-            @NewId, 
+            @Id, 
             MissionID, 
             MissionTime, 
             Launch, 
