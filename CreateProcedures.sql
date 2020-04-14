@@ -5,8 +5,8 @@ GO
 CREATE OR ALTER PROCEDURE sp_getCrew
 AS
 BEGIN TRY
-    SELECT * FROM Crew
-    FOR JSON PATH
+    SELECT (SELECT * FROM Crew
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -19,8 +19,8 @@ GO
 CREATE OR ALTER PROCEDURE sp_getActivities
 AS
 BEGIN TRY
-    SELECT * FROM Activity
-    FOR JSON PATH
+    SELECT (SELECT * FROM Activity
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -34,8 +34,8 @@ GO
 CREATE OR ALTER PROCEDURE sp_getBulletins
 as 
 BEGIN TRY
-    SELECT * FROM Bulletin
-    FOR JSON PATH
+    SELECT (SELECT * FROM Bulletin
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -49,8 +49,8 @@ GO
 CREATE OR ALTER PROCEDURE sp_getRoles
 as 
 BEGIN TRY
-    SELECT * FROM Role
-    FOR JSON PATH
+    SELECT (SELECT * FROM Role
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -64,8 +64,8 @@ GO
 CREATE OR ALTER PROCEDURE sp_getSites
 as 
 BEGIN TRY
-    SELECT * FROM Site
-    FOR JSON PATH
+    SELECT (SELECT * FROM Site
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -79,8 +79,8 @@ GO
 CREATE OR ALTER PROCEDURE sp_getRequirements
 as 
 BEGIN TRY
-    SELECT * FROM Requirement
-    FOR JSON PATH
+    SELECT (SELECT * FROM Requirement
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -95,7 +95,7 @@ CREATE OR ALTER PROCEDURE sp_getAllLogsForUser
 @CrewId INT
 as 
 BEGIN TRY
-    select l.*,
+    SELECT (select l.*,
         JSON_QUERY((select TOP 1 * 
         from Activity a
         where a.ID = l.ActivityId 
@@ -122,7 +122,7 @@ BEGIN TRY
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]
     from [Log] l
     Where l.CrewID = @CrewId
-    FOR JSON PATH
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -137,7 +137,7 @@ CREATE OR ALTER PROCEDURE sp_getLogForId
 @Id INT
 AS 
 BEGIN TRY
-    select JSON_QUERY((SELECT TOP 1 l.*,
+    SELECT (select JSON_QUERY((SELECT TOP 1 l.*,
         JSON_QUERY((select TOP 1 * 
         from Activity a
         where a.ID = l.ActivityId 
@@ -164,7 +164,7 @@ BEGIN TRY
         FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]
     from [Log] l
     WHERE l.ID = @Id
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -180,7 +180,7 @@ CREATE OR ALTER PROCEDURE sp_getUnacknowlegedBulletins
 @CrewId INT
 AS
 BEGIN TRY
-    SELECT * 
+    SELECT (SELECT b.* 
     FROM Bulletin b
     LEFT JOIN (
         SELECT b.*
@@ -189,7 +189,7 @@ BEGIN TRY
         WHERE a.CrewId = @CrewId
     ) AS acknowledgedBulletins on acknowledgedBulletins.id = b.Id
     where acknowledgedBulletins.ID is null
-    FOR JSON PATH
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -204,14 +204,14 @@ CREATE OR ALTER PROCEDURE sp_getRolesForCrew
 @CrewId INT 
 AS
 BEGIN TRY
-    SELECT c.*,
+    SELECT (SELECT c.*,
         (SELECT * 
         FROM CrewRoles cr
         JOIN Role r ON cr.RoleId = r.ID
         WHERE cr.CrewId = c.ID
         FOR JSON PATH) as [Roles]
     FROM Crew c 
-    FOR JSON PATH
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -227,7 +227,7 @@ Go
 CREATE OR ALTER PROCEDURE sp_getRoleRequirementsActivities
 AS
 BEGIN TRY
-    SELECT R.*,
+    SELECT (SELECT R.*,
         (SELECT re.* 
             ,(SELECT distinct a.*
             FROM RequirementActivities ra
@@ -239,7 +239,7 @@ BEGIN TRY
         WHERE RR.RoleID = R.ID
         FOR JSON PATH) as [Requirements]
     FROM ROLE R
-    FOR JSON PATH
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,
@@ -254,7 +254,7 @@ CREATE OR ALTER PROCEDURE sp_getMission
 @MissionId INT
 AS
 BEGIN TRY
-    select JSON_QUERY((Select m.*,
+    SELECT( select JSON_QUERY((Select m.*,
         JSON_QUERY((SELECT TOP 1 * 
         FROM Site s
         WHERE s.ID = m.siteId
@@ -281,7 +281,7 @@ BEGIN TRY
         FOR JSON PATH) as [FlightLogs]
     FROM Mission m
     where m.ID = @MissionId
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))) as json
 END TRY
 BEGIN CATCH
     Select ERROR_NUMBER() As ErrorNumber,

@@ -379,3 +379,52 @@ BEGIN CATCH
 END CATCH 
 
 GO
+
+CREATE OR ALTER PROCEDURE sp_addMission
+@json VARCHAR(MAX)
+AS
+BEGIN TRY
+    DECLARE @temp TABLE(SiteId INT, missionDate Date, LaunchNumber INT, AVTailNumber INT)
+    DECLARE @Id INT = (Select Id
+    From OPENJSON(@json)
+    WITH (
+        Id INT
+    ))
+
+    INSERT INTO @temp
+    SELECT SiteId, [Date], LaunchNumber, AVTailNumber
+    FROM OPENJSON(@json)
+    WITH (
+        SiteId Int,
+        [Date] Date,
+        LaunchNumber Int,
+        AVTailNumber Int
+    )
+
+    IF @Id IS NULL OR @Id = 0
+    BEGIN
+        INSERT INTO Mission
+        Select * from @temp
+    END
+    ELSE 
+    BEGIN
+        UPDATE Mission
+        SET SiteId = (select SiteId from @temp),
+        [Date] = (SELECT missionDate from @temp),
+        LaunchNumber = (SELECT LaunchNumber from @temp),
+        AVTailNumber = (SELECT AVTailNumber from @temp)
+        Where ID = @Id
+    END
+
+    
+
+    exec sp_getMission @Id
+    
+END TRY
+BEGIN CATCH
+    Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH
+END CATCH 
+
+GO
