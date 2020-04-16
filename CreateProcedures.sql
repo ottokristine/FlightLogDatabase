@@ -9,9 +9,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 GO
 
@@ -23,9 +23,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -38,9 +38,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -53,9 +53,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -68,9 +68,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -83,9 +83,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -125,9 +125,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -167,9 +167,9 @@ BEGIN TRY
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 GO
 
@@ -192,9 +192,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 Go
@@ -214,9 +214,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 Go
@@ -242,9 +242,9 @@ BEGIN TRY
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 Go
@@ -284,9 +284,173 @@ BEGIN TRY
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER))) as json
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+END CATCH 
+
+GO
+
+CREATE OR ALTER PROCEDURE sp_getCurrency
+@CrewId INT
+AS 
+BEGIN TRY
+    DECLARE @RequirementTable TABLE (requirementID INT, DaysValid INT, NeverExpiresFlag INT)
+    DECLARE @CurrencyTable TABLE (RequirementName VARCHAR(255), CurrentBool INT, ExpireDate Date)
+    DECLARE @TotalsTable TABLE (Launches INT, Recoveries INT, LowPasses INT, MissionTime INT)
+    DECLARE @RequirementId INT, @DaysValid INT, @NeverExpiresFlag INT, @Test INT
+    DECLARE @NumberOfRequiredLaunches INT, @NumberOfRequiredRecoveries INT, @RequiredLowPass INT, @RequiredMissionTime INT
+    DECLARE @MaxDate DATE
+
+    --get the requirements requirement by the user
+    INSERT INTO @RequirementTable
+    SELECT DISTINCT re.Id, re.DaysValid, re.NeverExpiresFlag
+    FROM Crew c
+    JOIN CrewRoles cr on Cr.CrewId = c.ID
+    JOIN [Role] r on r.ID = cr.RoleId
+    JOIN RoleRequirements rr on r.ID = rr.RoleID
+    JOIN Requirement re on re.ID = rr.RequirementID
+    Where c.Id = @CrewId
+
+    WHILE (Select Count(*) FROM @RequirementTable) > 0
+    BEGIN
+        SELECT TOP 1 @RequirementId = requirementId From @RequirementTable
+        SELECT TOP 1 @DaysValid = DaysValid From @RequirementTable
+        SELECT TOP 1 @NeverExpiresFlag = NeverExpiresFlag From @RequirementTable
+
+        --deal with the requirements that never expire
+        IF @NeverExpiresFlag = 1
+        BEGIN
+            SELECT @Test = ra.RequirementId
+            FROM RequirementActivities ra
+            JOIN Activity a
+            ON a.ID = ra.ActivityId
+            JOIN [Log] l 
+            ON l.CrewID = @CrewId AND l.ActivityId = a.ID
+            WHERE ra.RequirementId = @RequirementId
+
+            IF @Test IS NOT NULL
+            BEGIN
+                INSERT INTO @CurrencyTable VALUES((select name from Requirement where ID = @RequirementId), 1, NULL)
+            END
+            ELSE 
+            BEGIN
+                INSERT INTO @CurrencyTable VALUES((select name from Requirement where ID = @RequirementId), 0, NULL)
+            END
+        END
+        ELSE 
+        BEGIN
+            Select @Test = fr.ID
+            from FlightRequirement fr
+            WHERE fr.ID = @RequirementId
+
+            --calculate if the crew member has fulfilled the summed requirements for flight logs
+            IF @TEST IS NOT NULL
+            BEGIN 
+                SELECT TOP 1 @NumberOfRequiredLaunches = RequiredLaunches FROM FlightRequirement WHERE ID = @RequirementId
+                SELECT TOP 1 @NumberOfRequiredRecoveries = RequiredRecoveries FROM FlightRequirement WHERE ID = @RequirementId
+                SELECT TOP 1 @RequiredLowPass = RequiredLowPass FROM FlightRequirement WHERE ID = @RequirementId
+                SELECT TOP 1 @RequiredMissionTime = RequiredMissionTime FROM FlightRequirement WHERE ID = @RequirementId
+
+                INSERT INTO @TotalsTable
+                SELECT SUM(ISNULL(f.Launch,0)), SUM(ISNULL(f.[Recovery],0)), SUM(ISNULL(f.NumberOfLowPasses,0)), SUM(ISNULL(f.MissionTime,0))
+                FROM RequirementActivities ra
+                JOIN Activity a
+                ON a.ID = ra.ActivityId
+                JOIN [Log] l
+                ON l.CrewID = @CrewId AND l.ActivityId = a.ID
+                JOIN FlightLog f
+                ON f.ID = l.ID
+                WHERE l.Date >= DATEADD(DD, ((@DaysValid)*-1),SYSDATETIME())
+                AND ra.RequirementId = @RequirementId
+
+                SELECT @MaxDate = MAX(l.[Date])
+                FROM RequirementActivities ra
+                JOIN Activity a
+                ON a.ID = ra.ActivityId
+                JOIN [Log] l
+                ON l.CrewID = @CrewId AND l.ActivityId = a.ID
+                JOIN FlightLog f
+                ON f.ID = l.ID
+                WHERE ra.RequirementId = @RequirementId
+
+                IF (ISNULL((Select TOP 1 Launches from @TotalsTable),0) >= @NumberOfRequiredLaunches) 
+                AND (ISNULL((Select TOP 1 Recoveries from @TotalsTable),0) >= @NumberOfRequiredRecoveries) 
+                AND (ISNULL((Select TOP 1 LowPasses from @TotalsTable),0) > @RequiredLowPass)
+                AND (ISNULL((Select TOP 1 Recoveries from @TotalsTable),0) > @NumberOfRequiredRecoveries)
+                BEGIN
+                    INSERT INTO @CurrencyTable VALUES((select name from Requirement where ID = @RequirementId), 1, DATEADD(DD,@DaysValid,@MaxDate))
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO @CurrencyTable VALUES((select name from Requirement where ID = @RequirementId), 0, @MaxDate)
+                END
+            END
+            --calculate that event logs that expire have been completed once within the days valid
+            ELSE
+            BEGIN
+                SELECT @MaxDate = MAX(l.[Date])
+                FROM RequirementActivities ra
+                JOIN Activity a
+                ON a.ID = ra.ActivityId
+                JOIN [Log] l
+                ON l.CrewID = @CrewId AND l.ActivityId = a.ID
+                JOIN FlightLog f
+                ON f.ID = l.ID
+                WHERE ra.RequirementId = @RequirementId
+
+                IF @MaxDate >= DATEADD(DD, ((@DaysValid)*-1),SYSDATETIME())
+                BEGIN
+                    INSERT INTO @CurrencyTable VALUES((select name from Requirement where ID = @RequirementId), 1, DATEADD(DD,@DaysValid,@MaxDate))
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO @CurrencyTable VALUES((select name from Requirement where ID = @RequirementId), 0, @MaxDate)
+                END
+            END
+        END
+
+        DELETE FROM @RequirementTable
+        WHERE requirementID = @RequirementId
+    END 
+
+    SELECT (SELECT * 
+    FROM @CurrencyTable
     FOR JSON PATH
+    ) as json
+
+END TRY
+BEGIN CATCH
+    SELECT( Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+END CATCH 
+
+GO
+
+CREATE OR ALTER PROCEDURE sp_authenticateUser
+@Email INT,
+@Password VARCHAR(255)
+AS
+BEGIN TRY
+    If @Password = (Select password from Crew where Email = @Email)
+    BEGIN
+        SELECT(SELECT *
+        FROM CREW 
+        WHERE Email = @Email
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+    END
+    ELSE 
+    BEGIN 
+        SELECT (SELECT 403 as ErrorNumber, 
+        'Authentication Failed' as ErrorMessage
+        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+    END
+END TRY
+BEGIN CATCH
+    SELECT( Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO

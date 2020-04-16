@@ -50,9 +50,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -96,9 +96,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -142,9 +142,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -189,9 +189,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -237,9 +237,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -287,9 +287,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -318,9 +318,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -346,9 +346,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -374,9 +374,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -423,9 +423,9 @@ BEGIN TRY
     
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
@@ -538,9 +538,9 @@ BEGIN TRY
     END
 END TRY
 BEGIN CATCH
-    Select ERROR_NUMBER() As ErrorNumber,
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
 GO
