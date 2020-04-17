@@ -1,0 +1,20 @@
+--not after doing these need to refresh currency, might just want to refresh currency whenever you go to the currency page
+
+Delete Crew Role
+sp_deleteCrewRole @CrewId, @RoleId
+returns the roles for that crew memeber after deletion
+
+Delete Requirement Activity
+sp_deleteRequirementActivity @RequirementId, @ActivityId
+Returns all all activities for the requirment after deletion
+
+Delete Role Requirement
+sp_deleteRoleRequirement @RoleId, @RequirementId
+Returns all of the requirements for that role after deletion
+
+Delete Log
+sp_delete log
+deletes the log
+if it is a flight log, deletes that too
+if it is a flight log and there are no more flight logs on the mission, deletes the mission
+returns all logs for the crew member who performed the log
