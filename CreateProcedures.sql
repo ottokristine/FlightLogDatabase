@@ -15,17 +15,36 @@ BEGIN CATCH
 END CATCH 
 GO
 
---procedure for getting Activity objects
-CREATE OR ALTER PROCEDURE sp_getActivities
+--procedure for getting Event Activity objects
+CREATE OR ALTER PROCEDURE sp_getEventActivities
 AS
 BEGIN TRY
-    SELECT (SELECT * FROM Activity
+    SELECT (SELECT * 
+    FROM Activity
+    WHERE FlightActivityFlag = 0
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as jso
+END CATCH 
+
+GO
+
+--procedure for getting Flight Activity objects
+CREATE OR ALTER PROCEDURE sp_getFlightActivities
+AS
+BEGIN TRY
+    SELECT (SELECT * 
+    FROM Activity
+    WHERE FlightActivityFlag = 1
+    FOR JSON PATH) as json
+END TRY
+BEGIN CATCH
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as jso
 END CATCH 
 
 GO
@@ -204,13 +223,9 @@ CREATE OR ALTER PROCEDURE sp_getRolesForCrew
 @CrewId INT 
 AS
 BEGIN TRY
-    SELECT (SELECT c.*,
-        (SELECT * 
-        FROM CrewRoles cr
-        JOIN Role r ON cr.RoleId = r.ID
-        FOR JSON PATH) as [Roles]
-    FROM Crew c 
-    WHERE c.Id = @CrewId
+    SELECT (SELECT r.* 
+    FROM CrewRoles cr
+    JOIN Role r ON cr.RoleId = r.ID
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
@@ -240,6 +255,43 @@ BEGIN TRY
         FOR JSON PATH) as [Requirements]
     FROM ROLE R
     FOR JSON PATH) as json
+END TRY
+BEGIN CATCH
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+END CATCH 
+
+Go
+
+--gets all of the requirements for a role
+CREATE OR ALTER PROCEDURE sp_getRequirementsForRole
+@RoleId INT
+AS
+BEGIN TRY
+    SELECT (SELECT r.*
+    FROM RoleRequirements rr
+    JOIN Requirement r ON r.ID = rr.RequirementID
+    WHERE rr.RoleID = @RoleId
+    FOR JSON PATH) as json
+END TRY
+BEGIN CATCH
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+END CATCH 
+
+Go
+
+CREATE OR ALTER PROCEDURE sp_getActivitiesForRequirement
+@RequirementId INT
+AS
+BEGIN TRY
+    SELECT (SELECT a.*
+        FROM RequirementActivities ra
+        JOIN Activity a ON a.ID = ra.ActivityId
+        WHERE ra.RequirementId = @RequirementId
+        FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     SELECT(Select ERROR_NUMBER() As ErrorNumber,
@@ -290,6 +342,41 @@ BEGIN CATCH
 END CATCH 
 
 GO
+
+--gets all the flight logs associated with a mission
+CREATE OR ALTER PROCEDURE sp_getFlightLogsForMission
+@MissionId INT
+AS
+BEGIN TRY
+        SELECT (SELECT f.*,
+            JSON_QUERY((Select TOP 1 l.*,
+                JSON_QUERY((select TOP 1 * 
+                from Activity a
+                where a.ID = l.ActivityId 
+                FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Activity],
+                JSON_QUERY((select TOP 1* 
+                from Crew c
+                where c.ID = l.CrewId
+                FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Crew]
+            FROM [Log] l
+            WHERE l.ID = f.ID
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Log],
+            JSON_QUERY((select TOP 1 * 
+            from Role r
+            where r.ID = f.RoleID
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [Role]
+        from FlightLog f
+        WHERE f.missionId = @MissionId
+        FOR JSON PATH)  as json
+END TRY
+BEGIN CATCH
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+END CATCH 
+
+GO
+
 
 CREATE OR ALTER PROCEDURE sp_getCurrency
 @CrewId INT

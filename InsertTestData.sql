@@ -15,10 +15,10 @@ INSERT INTO Site VALUES ('DRAGONFLY 1', 'DRG')
 INSERT INTO Site VALUES ('RIBBIT', 'RBT')
 
 --populate activities
-INSERT INTO Activity VALUES ('Flight')
-INSERT INTO Activity VALUES ('Sim')
-INSERT INTO Activity VALUES ('Quiz')
-INSERT INTO Activity VALUES ('Background Check')
+INSERT INTO Activity VALUES ('Flight', 1)
+INSERT INTO Activity VALUES ('Sim', 1)
+INSERT INTO Activity VALUES ('Quiz', 0)
+INSERT INTO Activity VALUES ('Background Check', 0)
 
 --populate roles
 INSERT INTO Role VALUES ('Basic Operator')

@@ -1,0 +1,542 @@
+Create Procedures
+
+Get Crew
+cp_getCrew
+[
+    {
+        "ID": 1,
+        "FirstName": "Kristine",
+        "LastName": "Otto",
+        "Email": "ottokristine@gmail.com",
+        "Password": "test",
+        "AdminFlag": 0
+    },
+    {
+        "ID": 2,
+        "FirstName": "Zachary",
+        "LastName": "Lance",
+        "Email": "zalance@fake.com",
+        "Password": "test",
+        "AdminFlag": 1
+    }
+]
+
+Get Event (Generic Log) Activities
+sp_getEventActivities
+[
+    {
+        "ID": 3,
+        "Name": "Quiz",
+        "FlightActivityFlag": 0
+    },
+    {
+        "ID": 4,
+        "Name": "Background Check",
+        "FlightActivityFlag": 0
+    }
+]
+
+Get Flight Activities
+sp_getFlightActivities
+[
+    {
+        "ID": 1,
+        "Name": "Flight",
+        "FlightActivityFlag": 1
+    },
+    {
+        "ID": 2,
+        "Name": "Sim",
+        "FlightActivityFlag": 1
+    }
+]
+
+Get Bulletins (All)
+sp_getBulletins
+[
+    {
+        "ID": 3,
+        "Name": "This is a new bulletin"
+    },
+    {
+        "ID": 4,
+        "Name": "This is a new bulletin Update Again"
+    }
+]
+
+Get Roles
+sp_getRoles
+[
+    {
+        "ID": 1,
+        "Name": "Basic Operator"
+    },
+    {
+        "ID": 3,
+        "Name": "Flight Instructor"
+    }
+]
+
+Get Sites
+sp_getSites
+[
+    {
+        "ID": 1,
+        "Name": "DRAGONFLY 1",
+        "Prefix": "DRG"
+    },
+    {
+        "ID": 2,
+        "Name": "RIBBIT",
+        "Prefix": "RBT"
+    },
+    {
+        "ID": 3,
+        "Name": "Fake Site",
+        "Prefix": "FSS"
+    }
+]
+
+Get Requirements (All)
+sp_getRequirements
+[
+    {
+        "ID": 1,
+        "Name": "Background Check",
+        "NeverExpiresFlag": 1
+    },
+    {
+        "ID": 2,
+        "Name": "30 Day Quiz",
+        "DaysValid": 30,
+        "NeverExpiresFlag": 0
+    }
+]
+
+Get all Logs for user (pass in crew id parameter)
+sp_getAllLogsForUser @CrewId
+--returns a very long json of all the logs a user has completed. Included the nested objects in case they are useful, but they don't need to be parsed if they are not
+[
+    {
+        "ID": 1,
+        "Date": "2020-04-01T00:19:10.957",
+        "ActivityId": 1,
+        "CrewID": 2,
+        "Activity": {
+            "ID": 1,
+            "Name": "Flight",
+            "FlightActivityFlag": 1
+        },
+        "Crew": {
+            "ID": 2,
+            "FirstName": "Zachary",
+            "LastName": "Lance",
+            "Email": "zalance@fake.com",
+            "Password": "test",
+            "AdminFlag": 1
+        },
+        "FlightLog": {
+            "ID": 1,
+            "MissionID": 1,
+            "MissionTime": 5,
+            "Launch": 1,
+            "Recovery": 1,
+            "NumberOfLowPasses": 0,
+            "RoleID": 1,
+            "Mission": {
+                "ID": 1,
+                "SiteId": 1,
+                "Date": "2020-04-01T00:19:10.953",
+                "LaunchNumber": 2,
+                "AVTailNumber": 223,
+                "Site": {
+                    "ID": 1,
+                    "Name": "DRAGONFLY 1",
+                    "Prefix": "DRG"
+                }
+            },
+            "Role": {
+                "ID": 1,
+                "Name": "Basic Operator"
+            }
+        }
+    },
+    {
+        "ID": 2,
+        "Date": "2020-04-01T00:19:10.973",
+        "ActivityId": 2,
+        "CrewID": 2,
+        "Activity": {
+            "ID": 2,
+            "Name": "Sim",
+            "FlightActivityFlag": 1
+        },
+        "Crew": {
+            "ID": 2,
+            "FirstName": "Zachary",
+            "LastName": "Lance",
+            "Email": "zalance@fake.com",
+            "Password": "test",
+            "AdminFlag": 1
+        },
+        "FlightLog": {
+            "ID": 2,
+            "MissionID": 2,
+            "MissionTime": 4,
+            "Launch": 2,
+            "Recovery": 1,
+            "NumberOfLowPasses": 0,
+            "RoleID": 1,
+            "Mission": {
+                "ID": 2,
+                "SiteId": 1,
+                "Date": "2020-04-01T00:00:00",
+                "LaunchNumber": 5,
+                "AVTailNumber": 222,
+                "Site": {
+                    "ID": 1,
+                    "Name": "DRAGONFLY 1",
+                    "Prefix": "DRG"
+                }
+            },
+            "Role": {
+                "ID": 1,
+                "Name": "Basic Operator"
+            }
+        }
+    },
+    {
+        "ID": 3,
+        "Date": "2020-04-01T00:19:10.983",
+        "ActivityId": 4,
+        "CrewID": 2,
+        "Activity": {
+            "ID": 4,
+            "Name": "Background Check",
+            "FlightActivityFlag": 0
+        },
+        "Crew": {
+            "ID": 2,
+            "FirstName": "Zachary",
+            "LastName": "Lance",
+            "Email": "zalance@fake.com",
+            "Password": "test",
+            "AdminFlag": 1
+        }
+    }
+]
+
+Get log for an id (parameter is the log id)
+GetLogForId @LogId
+--below is a flight log, if generic activity then the flightlog object will not be included
+{
+    "ID": 2,
+    "Date": "2020-04-01T00:19:10.973",
+    "ActivityId": 2,
+    "CrewID": 2,
+    "Activity": {
+        "ID": 2,
+        "Name": "Sim",
+        "FlightActivityFlag": 1
+    },
+    "Crew": {
+        "ID": 2,
+        "FirstName": "Zachary",
+        "LastName": "Lance",
+        "Email": "zalance@fake.com",
+        "Password": "test",
+        "AdminFlag": 1
+    },
+    "FlightLog": {
+        "ID": 2,
+        "MissionID": 2,
+        "MissionTime": 4,
+        "Launch": 2,
+        "Recovery": 1,
+        "NumberOfLowPasses": 0,
+        "RoleID": 1,
+        "Mission": {
+            "ID": 2,
+            "SiteId": 1,
+            "Date": "2020-04-01T00:00:00",
+            "LaunchNumber": 5,
+            "AVTailNumber": 222,
+            "Site": {
+                "ID": 1,
+                "Name": "DRAGONFLY 1",
+                "Prefix": "DRG"
+            }
+        },
+        "Role": {
+            "ID": 1,
+            "Name": "Basic Operator"
+        }
+    }
+}
+
+get unacknowledged bulletins (parameter is CrewId)
+sp_getUnacknowledgedBulletins @CrewId
+[
+    {
+        "ID": 2,
+        "Name": "New GPS sofware available for download"
+    },
+    {
+        "ID": 3,
+        "Name": "This is a new bulletin"
+    }
+]
+
+Get Roles For a Crew Member (parameter is CrewId)
+getRolesForCrew @CrewId
+[
+    {
+        "ID": 1,
+        "Name": "Basic Operator"
+    },
+    {
+        "ID": 1,
+        "Name": "Basic Operator"
+    }
+]
+
+Get Requirements For a Role (parameter is the roleId)
+sp_getRequirementsForRole @RoleId
+[
+    {
+        "ID": 1,
+        "Name": "Background Check",
+        "NeverExpiresFlag": 1
+    },
+    {
+        "ID": 3,
+        "Name": "90 Day Flight Check",
+        "DaysValid": 90,
+        "NeverExpiresFlag": 0
+    }
+]
+
+Get Activities For Requirement (parameter is the requirementId)
+sp_getActivitiesForRequirement @RequirementId
+[
+    {
+        "ID": 4,
+        "Name": "Background Check",
+        "FlightActivityFlag": 0
+    }
+]
+
+
+Get a mission and all logs associated with it (parameter is mission Id)
+sp_getMission @MissionId
+{
+    "ID": 1,
+    "SiteId": 1,
+    "Date": "2020-04-01T00:19:10.953",
+    "LaunchNumber": 2,
+    "AVTailNumber": 223,
+    "Site": {
+        "ID": 1,
+        "Name": "DRAGONFLY 1",
+        "Prefix": "DRG"
+    },
+    "FlightLogs": [
+        {
+            "ID": 1,
+            "MissionID": 1,
+            "MissionTime": 5,
+            "Launch": 1,
+            "Recovery": 1,
+            "NumberOfLowPasses": 0,
+            "RoleID": 1,
+            "Log": {
+                "ID": 1,
+                "Date": "2020-04-01T00:19:10.957",
+                "ActivityId": 1,
+                "CrewID": 2,
+                "Activity": {
+                    "ID": 1,
+                    "Name": "Flight",
+                    "FlightActivityFlag": 1
+                },
+                "Crew": {
+                    "ID": 2,
+                    "FirstName": "Zachary",
+                    "LastName": "Lance",
+                    "Email": "zalance@fake.com",
+                    "Password": "test",
+                    "AdminFlag": 1
+                }
+            },
+            "Role": {
+                "ID": 1,
+                "Name": "Basic Operator"
+            }
+        },
+        {
+            "ID": 15,
+            "MissionID": 1,
+            "MissionTime": 5,
+            "Launch": 1,
+            "Recovery": 1,
+            "NumberOfLowPasses": 0,
+            "RoleID": 1,
+            "Log": {
+                "ID": 15,
+                "Date": "2020-04-01T00:00:00",
+                "ActivityId": 1,
+                "CrewID": 3,
+                "Activity": {
+                    "ID": 1,
+                    "Name": "Flight",
+                    "FlightActivityFlag": 1
+                },
+                "Crew": {
+                    "ID": 3,
+                    "FirstName": "Ian",
+                    "LastName": "Eberly",
+                    "Email": "ieberly@fake.com",
+                    "Password": "test",
+                    "AdminFlag": 1
+                }
+            },
+            "Role": {
+                "ID": 1,
+                "Name": "Basic Operator"
+            }
+        },
+        {
+            "ID": 16,
+            "MissionID": 1,
+            "MissionTime": 5,
+            "Launch": 1,
+            "Recovery": 1,
+            "NumberOfLowPasses": 0,
+            "RoleID": 1,
+            "Log": {
+                "ID": 16,
+                "Date": "2020-04-01T00:00:00",
+                "ActivityId": 1,
+                "CrewID": 3,
+                "Activity": {
+                    "ID": 1,
+                    "Name": "Flight",
+                    "FlightActivityFlag": 1
+                },
+                "Crew": {
+                    "ID": 3,
+                    "FirstName": "Ian",
+                    "LastName": "Eberly",
+                    "Email": "ieberly@fake.com",
+                    "Password": "test",
+                    "AdminFlag": 1
+                }
+            },
+            "Role": {
+                "ID": 1,
+                "Name": "Basic Operator"
+            }
+        }
+    ]
+}
+
+Get All Flight Logs For a Mission (parameter is missionId)
+sp_getFlightLogsForMission @MissionId
+[
+    {
+        "ID": 1,
+        "MissionID": 1,
+        "MissionTime": 5,
+        "Launch": 1,
+        "Recovery": 1,
+        "NumberOfLowPasses": 0,
+        "RoleID": 1,
+        "Log": {
+            "ID": 1,
+            "Date": "2020-04-01T00:19:10.957",
+            "ActivityId": 1,
+            "CrewID": 2,
+            "Activity": {
+                "ID": 1,
+                "Name": "Flight",
+                "FlightActivityFlag": 1
+            },
+            "Crew": {
+                "ID": 2,
+                "FirstName": "Zachary",
+                "LastName": "Lance",
+                "Email": "zalance@fake.com",
+                "Password": "test",
+                "AdminFlag": 1
+            }
+        },
+        "Role": {
+            "ID": 1,
+            "Name": "Basic Operator"
+        }
+    },
+    {
+        "ID": 15,
+        "MissionID": 1,
+        "MissionTime": 5,
+        "Launch": 1,
+        "Recovery": 1,
+        "NumberOfLowPasses": 0,
+        "RoleID": 1,
+        "Log": {
+            "ID": 15,
+            "Date": "2020-04-01T00:00:00",
+            "ActivityId": 1,
+            "CrewID": 3,
+            "Activity": {
+                "ID": 1,
+                "Name": "Flight",
+                "FlightActivityFlag": 1
+            },
+            "Crew": {
+                "ID": 3,
+                "FirstName": "Ian",
+                "LastName": "Eberly",
+                "Email": "ieberly@fake.com",
+                "Password": "test",
+                "AdminFlag": 1
+            }
+        },
+        "Role": {
+            "ID": 1,
+            "Name": "Basic Operator"
+        }
+    }
+]
+
+Get Users Currency (parameter is the crewId)
+sp_getCurrency @CrewId
+[
+    {
+        "RequirementName": "Background Check",
+        "CurrentBool": 1
+    },
+    {
+        "RequirementName": "90 Day Flight Check",
+        "CurrentBool": 0,
+        "ExpireDate": "2020-04-01"
+    }
+]
+
+spAuthenticateUser @email @password
+If invalid will get (format is the same as other errors so can use the same parser)
+{
+    "ErrorNumber": 403,
+    "ErrorMessage": "Authentication Failed"
+}
+If valid will get the crew object
+{
+    "ID": 1,
+    "FirstName": "Kristine",
+    "LastName": "Otto",
+    "Email": "ottokristine@gmail.com",
+    "Password": "test",
+    "AdminFlag": 0
+}
+
+

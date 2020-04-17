@@ -116,7 +116,7 @@ returns the site inserted/updated or error
         "RoleId": 4,
         "RequirementId": 1
 }
-returns the whole role/requirement/activity json tree
+returns the whole requirements for that role
 
 Add Requirement Activity
 sp_addRequirementActivity
@@ -124,7 +124,7 @@ sp_addRequirementActivity
         "ActivityId": 4,
         "RequirementId": 2
 }
-returns the whole role/requirement/activity json tree
+returns the activities for that requirement
 
 Add Mission
 sp_addMission

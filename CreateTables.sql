@@ -45,7 +45,8 @@ CREATE TABLE FlightRequirement (
 
 CREATE TABLE Activity (
     ID INT IDENTITY(1,1) PRIMARY KEY,
-    Name VARCHAR(155) NOT NULL UNIQUE
+    Name VARCHAR(155) NOT NULL UNIQUE,
+    FlightActivityFlag INT NOT NULL
 )
 
 CREATE TABLE RequirementActivities (

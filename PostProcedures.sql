@@ -61,7 +61,7 @@ CREATE OR ALTER PROCEDURE sp_addActivity
 @json VARCHAR(MAX)
 AS
 BEGIN TRY
-    DECLARE @TempActivity TABLE(Name VARCHAR(255))
+    DECLARE @TempActivity TABLE(Name VARCHAR(255), FlightActivityFlag INT)
     DECLARE @Id INT = (Select ID
     From OPENJSON(@json)
     WITH (
@@ -69,10 +69,11 @@ BEGIN TRY
     ))
 
     INSERT INTO @TempActivity
-    SELECT Name
+    SELECT Name, FlightActivityFlag
     FROM OPENJSON(@json)
     WITH (
-        Name VARCHAR(255)
+        Name VARCHAR(255),
+        FlightActivityFlag INT
     )
     
     If @Id IS NULL OR @Id = 0
@@ -85,7 +86,8 @@ BEGIN TRY
     ELSE
     BEGIN
         UPDATE Activity
-        Set Name = (Select Name from @TempActivity)
+        Set Name = (Select Name from @TempActivity),
+        FlightActivityFlag = (Select FlightActivityFlag from @TempActivity)
         Where Id = @Id
     END
 
@@ -330,6 +332,7 @@ CREATE OR ALTER PROCEDURE sp_addRoleRequirement
 AS
 BEGIN TRY
     DECLARE @temp TABLE(RequirementId INT, RoleId INT)
+    DECLARE @RoleId INT
 
     INSERT INTO @temp
     SELECT RequirementId, RoleId
@@ -339,10 +342,12 @@ BEGIN TRY
         RoleId INT
     )
 
+    SET @RoleId = (select RoleId from @temp)
+
     INSERT INTO RoleRequirements
     SELECT * FROM @temp
 
-    exec sp_getRoleRequirementsActivities
+    exec sp_getRequirementsForRole @RoleId
     
 END TRY
 BEGIN CATCH
@@ -358,6 +363,7 @@ CREATE OR ALTER PROCEDURE sp_addRequirementActivity
 AS
 BEGIN TRY
     DECLARE @temp TABLE(RequirementId INT, ActivityId INT)
+    DECLARE @RequirementId INT
 
     INSERT INTO @temp
     SELECT RequirementId, ActivityId
@@ -367,10 +373,12 @@ BEGIN TRY
         ActivityId INT
     )
 
+    SET @RequirementId = (select RequirementId from @temp)
+
     INSERT INTO RequirementActivities
     SELECT * FROM @temp
 
-    exec sp_getRoleRequirementsActivities
+    exec sp_getActivitiesForRequirement @RequirementId
     
 END TRY
 BEGIN CATCH
