@@ -31,6 +31,14 @@ sp_addBulletin
 }
 returns the bulletin inserted/updated or error
 
+AcknowledgeBulletin
+sp_AcknowledgeBulletin
+{
+"CrewId":3,
+"BulletinId":2
+}
+Returns the unacknowledged bulletins of the user
+
 Add Log
 sp_AddLog
 --flight log

@@ -381,6 +381,36 @@ END CATCH
 
 GO
 
+CREATE OR ALTER PROCEDURE sp_AcknowledgeBulletin
+@json VARCHAR(MAX)
+AS
+BEGIN TRY
+    DECLARE @temp TABLE(CrewId INT, BulletinId INT)
+    DECLARE @CrewId INT
+
+    INSERT INTO @temp
+    SELECT CrewId, BulletinId
+    FROM OPENJSON(@json)
+    WITH (
+        CrewId INT,
+        BulletinId INT
+    )
+
+    INSERT INTO Acknowledges
+    SELECT * from @temp
+
+    SET @CrewId = (select CrewId from @temp)
+
+    exec sp_getUnacknowlegedBulletins @CrewId
+END TRY
+BEGIN CATCH
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+END CATCH 
+
+GO
+
 CREATE OR ALTER PROCEDURE sp_addMission
 @json VARCHAR(MAX)
 AS

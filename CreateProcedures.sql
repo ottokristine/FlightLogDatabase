@@ -429,7 +429,7 @@ END CATCH
 GO
 
 CREATE OR ALTER PROCEDURE sp_authenticateUser
-@Email INT,
+@Email VARCHAR(255),
 @Password VARCHAR(255)
 AS
 BEGIN TRY
