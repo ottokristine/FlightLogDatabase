@@ -208,9 +208,9 @@ BEGIN TRY
         (SELECT * 
         FROM CrewRoles cr
         JOIN Role r ON cr.RoleId = r.ID
-        WHERE cr.CrewId = c.ID
         FOR JSON PATH) as [Roles]
     FROM Crew c 
+    WHERE c.Id = @CrewId
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
