@@ -226,6 +226,7 @@ BEGIN TRY
     SELECT (SELECT r.* 
     FROM CrewRoles cr
     JOIN Role r ON cr.RoleId = r.ID
+    WHERE cr.CrewId = @CrewId
     FOR JSON PATH) as json
 END TRY
 BEGIN CATCH

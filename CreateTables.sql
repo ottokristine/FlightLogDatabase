@@ -52,7 +52,8 @@ CREATE TABLE Activity (
 CREATE TABLE RequirementActivities (
     RequirementId INT FOREIGN KEY REFERENCES Requirement(ID) ON DELETE CASCADE,
     ActivityId Int FOREIGN KEY REFERENCES Activity(ID) ON DELETE CASCADE,
-    PRIMARY KEY(RequirementId, ActivityId)
+    PRIMARY KEY(RequirementId, ActivityId),
+    CONSTRAINT ra_unique UNIQUE (RequirementId, ActivityId)
 )
 
 CREATE TABLE [Role] (
@@ -63,7 +64,8 @@ CREATE TABLE [Role] (
 CREATE TABLE RoleRequirements (
     RequirementID INT FOREIGN KEY REFERENCES Requirement(Id) ON DELETE CASCADE,
     RoleID INT FOREIGN KEY REFERENCES Role(Id) ON DELETE CASCADE,
-    PRIMARY KEY(RequirementId, RoleID)
+    PRIMARY KEY(RequirementId, RoleID),
+    CONSTRAINT rr_unique UNIQUE (RequirementId, RoleID)
 )
 
 CREATE TABLE Mission (
@@ -93,5 +95,7 @@ CREATE TABLE FlightLog (
 
 CREATE TABLE CrewRoles (
     CrewId INT NOT NULL FOREIGN KEY REFERENCES Crew(ID) ON DELETE CASCADE,
-    RoleId INT NOT NULL FOREIGN KEY REFERENCES Role(ID) ON DELETE CASCADE
+    RoleId INT NOT NULL FOREIGN KEY REFERENCES Role(ID) ON DELETE CASCADE,
+    PRIMARY KEY(CrewId, RoleId),
+    CONSTRAINT cr_unique UNIQUE (CrewId, RoleId)
 )
