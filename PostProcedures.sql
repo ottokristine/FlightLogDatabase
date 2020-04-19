@@ -468,7 +468,6 @@ END CATCH
 
 GO
 
-
 CREATE OR ALTER PROCEDURE sp_addLog
 @json VARCHAR(MAX)
 AS
@@ -522,10 +521,8 @@ BEGIN TRY
         ID INT
         ))
 
-        PRINT @FlightLogJson
-
         INSERT INTO @FlightLogTemp
-        SELECT MissionID INT, MissionTime INT, Launch INT, [Recovery] INT, NumberOfLowPasses INT, RoleId INT
+        SELECT MissionID INT, MissionTime INT, Launch INT, [Recovery] INT, NumberOfLowPasses INT, RoleID INT
         FROM OPENJSON(@FlightLogJson)
         WITH (
             MissionID INT, 
@@ -535,11 +532,12 @@ BEGIN TRY
             NumberOfLowPasses INT, 
             RoleID INT
         )
-        IF @FlightLogId IS NULL OR @Id = 0
+
+        IF @FlightLogId IS NULL OR @FlightLogId = 0
         BEGIN 
             INSERT INTO FlightLog
-            SELECT 
-            @Id, 
+            SELECT
+            @Id,
             MissionID, 
             MissionTime, 
             Launch, 
@@ -547,6 +545,8 @@ BEGIN TRY
             NumberOfPasses, 
             RoleID
             FROM @FlightLogTemp
+
+            PRINT 'Got Here'
         END
         ELSE 
         BEGIN 
@@ -560,19 +560,12 @@ BEGIN TRY
             WHERE ID = @Id
         END
 
-        SELECT (Select l.*,
-        JSON_QUERY((SELECT * from FlightLog
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]  
-        from [Log] l
-        WHERE ID = @Id
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+        exec sp_getLogForId @Id
 
     END
     ELSE 
     BEGIN
-        SELECT (Select * from [Log] 
-        WHERE ID = @Id
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+        exec sp_getLogForId @Id
     END
 END TRY
 BEGIN CATCH
