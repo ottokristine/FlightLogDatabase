@@ -33,6 +33,22 @@ END CATCH
 GO
 
 --procedure for getting Flight Activity objects
+CREATE OR ALTER PROCEDURE sp_getAllActivities
+AS
+BEGIN TRY
+    SELECT (SELECT * 
+    FROM Activity
+    FOR JSON PATH) as json
+END TRY
+BEGIN CATCH
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as jso
+END CATCH 
+
+GO
+
+--procedure for getting Flight Activity objects
 CREATE OR ALTER PROCEDURE sp_getFlightActivities
 AS
 BEGIN TRY
