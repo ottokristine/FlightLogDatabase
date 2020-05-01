@@ -2,6 +2,18 @@ CREATE DATABASE CurrencyTracker
 
 GO
 
+USE [master]
+
+CREATE LOGIN [user] WITH PASSWORD = 'password123', CHECK_POLICY = OFF;
+
+USE [CurrencyTracker]
+create user [user] for login [user]
+EXEC sp_addrolemember N'db_owner', N'user'
+
+GO
+
+Use [CurrencyTracker]
+
 Use [CurrencyTracker]
 
 CREATE TABLE Bulletin (
@@ -104,7 +116,10 @@ CREATE TABLE CrewRoles (
     CONSTRAINT cr_unique UNIQUE (CrewId, RoleId)
 )
 
-Go
+GO
+
+USE [CurrencyTracker]
+GO
 
 --procedure for getting Crew objects
 CREATE PROCEDURE sp_getCrew
@@ -138,10 +153,10 @@ END CATCH
 GO
 
 --procedure for getting Flight Activity objects
-CREATE OR ALTER PROCEDURE sp_getAllActivities
+CREATE PROCEDURE sp_getAllActivities
 AS
 BEGIN TRY
-    SELECT (SELECT *
+    SELECT (SELECT * 
     FROM Activity
     FOR JSON PATH) as json
 END TRY
@@ -149,7 +164,7 @@ BEGIN CATCH
     SELECT(Select ERROR_NUMBER() As ErrorNumber,
     ERROR_MESSAGE() As ErrorMessage
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
-END CATCH
+END CATCH 
 
 GO
 
@@ -662,6 +677,12 @@ BEGIN CATCH
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
 
+GO
+
+
+
+USE CurrencyTracker
+
 Go
 
 CREATE PROCEDURE sp_addCrew 
@@ -834,20 +855,20 @@ BEGIN TRY
     If @Id IS NULL OR @Id = 0
     BEGIN
     PRINT 'NEW ROLE'
-        INSERT INTO Role
+        INSERT INTO [CurrencyTracker].dbo.Role
         Select * from @TempRole
 
         SET @Id = SCOPE_IDENTITY()
     END
     ELSE
     BEGIN
-        UPDATE Role
+        UPDATE [CurrencyTracker].dbo.Role
         Set Name = (Select Name from @TempRole)
         Where Id = @Id
     END
 
     SELECT (Select * 
-    FROM Role 
+    FROM [CurrencyTracker].dbo.Role 
     where Id = @Id
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
     
@@ -1130,7 +1151,6 @@ END CATCH
 
 GO
 
-
 CREATE PROCEDURE sp_addLog
 @json VARCHAR(MAX)
 AS
@@ -1184,10 +1204,8 @@ BEGIN TRY
         ID INT
         ))
 
-        PRINT @FlightLogJson
-
         INSERT INTO @FlightLogTemp
-        SELECT MissionID INT, MissionTime INT, Launch INT, [Recovery] INT, NumberOfLowPasses INT, RoleId INT
+        SELECT MissionID INT, MissionTime INT, Launch INT, [Recovery] INT, NumberOfLowPasses INT, RoleID INT
         FROM OPENJSON(@FlightLogJson)
         WITH (
             MissionID INT, 
@@ -1197,11 +1215,12 @@ BEGIN TRY
             NumberOfLowPasses INT, 
             RoleID INT
         )
-        IF @FlightLogId IS NULL OR @Id = 0
+
+        IF @FlightLogId IS NULL OR @FlightLogId = 0
         BEGIN 
             INSERT INTO FlightLog
-            SELECT 
-            @Id, 
+            SELECT
+            @Id,
             MissionID, 
             MissionTime, 
             Launch, 
@@ -1222,19 +1241,12 @@ BEGIN TRY
             WHERE ID = @Id
         END
 
-        SELECT (Select l.*,
-        JSON_QUERY((SELECT * from FlightLog
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER)) as [FlightLog]  
-        from [Log] l
-        WHERE ID = @Id
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+        exec sp_getLogForId @Id
 
     END
     ELSE 
     BEGIN
-        SELECT (Select * from [Log] 
-        WHERE ID = @Id
-        FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+        exec sp_getLogForId @Id
     END
 END TRY
 BEGIN CATCH
@@ -1242,6 +1254,10 @@ BEGIN CATCH
     ERROR_MESSAGE() As ErrorMessage
     FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END CATCH 
+
+GO
+
+USE CurrencyTracker
 
 Go
 
@@ -1356,6 +1372,9 @@ END CATCH
 
 GO
 
+
+
+Use [CurrencyTracker]
 
 --insert Crew into the Crew table
 INSERT INTO Crew VALUES ('Kristine','Otto','ottokristine@gmail.com','test',0)
