@@ -515,7 +515,7 @@ END CATCH
 GO
 
 
-CREATE PROCEDURE sp_getCurrency
+CREATE OR ALTER PROCEDURE sp_getCurrency
 @CrewId INT
 AS 
 BEGIN TRY
@@ -600,8 +600,8 @@ BEGIN TRY
 
                 IF (ISNULL((Select TOP 1 Launches from @TotalsTable),0) >= @NumberOfRequiredLaunches) 
                 AND (ISNULL((Select TOP 1 Recoveries from @TotalsTable),0) >= @NumberOfRequiredRecoveries) 
-                AND (ISNULL((Select TOP 1 LowPasses from @TotalsTable),0) > @RequiredLowPass)
-                AND (ISNULL((Select TOP 1 Recoveries from @TotalsTable),0) > @NumberOfRequiredRecoveries)
+                AND (ISNULL((Select TOP 1 LowPasses from @TotalsTable),0) >= @RequiredLowPass)
+                AND (ISNULL((Select TOP 1 MissionTime from @TotalsTable),0) >= @RequiredMissionTime)
                 BEGIN
                     INSERT INTO @CurrencyTable VALUES((select name from Requirement where ID = @RequirementId), 1, DATEADD(DD,@DaysValid,@MaxDate))
                 END
