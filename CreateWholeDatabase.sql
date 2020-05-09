@@ -232,7 +232,6 @@ BEGIN CATCH
 END CATCH 
 
 GO
-
 --get all requirements
 CREATE PROCEDURE sp_getRequirements
 as 
@@ -244,7 +243,7 @@ BEGIN TRY
     FlightRequirement.*
     FROM Requirement 
     LEFT join FlightRequirement on FlightRequirement.ID = Requirement.ID
-    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+    FOR JSON PATH) as json
 END TRY
 BEGIN CATCH
     SELECT(Select ERROR_NUMBER() As ErrorNumber,
@@ -253,6 +252,7 @@ BEGIN CATCH
 END CATCH 
 
 GO
+
 
 --get Users Logs
 CREATE PROCEDURE sp_getAllLogsForUser
@@ -417,13 +417,13 @@ CREATE PROCEDURE sp_getRequirementsForRole
 AS
 BEGIN TRY
     SELECT (Select 
-    Requirement.DaysValid,
-    Requirement.Name,
-    Requirement.NeverExpiresFlag,
+    r.DaysValid,
+    r.Name,
+    r.NeverExpiresFlag,
     FlightRequirement.*
     FROM RoleRequirements rr
     JOIN Requirement r ON r.ID = rr.RequirementID
-    LEFT JOIN FlightRequirement on FlightRequirement.ID = Requirement.ID
+    LEFT JOIN FlightRequirement on FlightRequirement.ID = r.ID
     WHERE rr.RoleID = @RoleId
     FOR JSON PATH) as json
 END TRY
