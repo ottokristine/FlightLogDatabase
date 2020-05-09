@@ -932,6 +932,90 @@ END CATCH
 
 GO
 
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE   PROCEDURE [dbo].[sp_addFlightRequirement]
+@json VARCHAR(MAX)
+AS
+BEGIN TRY
+    DECLARE @TempRequirement TABLE(Name VARCHAR(255), DaysValid INT, NeverExpiresFlag INT)
+    DECLARE @TempFlightRequirement TABLE(RequiredLaunches INT, RequiredRecoveries INT, RequiredLowPass INT, RequiredMissionTime DECIMAL)
+    DECLARE @Id INT = (Select ID
+    From OPENJSON(@json)
+    WITH (
+        ID INT
+    ))
+
+    INSERT INTO @TempRequirement
+    SELECT Name, DaysValid, NeverExpiresFlag
+    FROM OPENJSON(@json)
+    WITH (
+        Name VARCHAR(255),
+        DaysValid INT,
+        NeverExpiresFlag INT
+    )
+    INSERT INTO @TempFlightRequirement
+    SELECT RequiredLaunches, RequiredRecoveries, RequiredLowPass, RequiredMissionTime
+    FROM OPENJSON(@json)
+    WITH (
+        RequiredLaunches INT, 
+        RequiredRecoveries INT, 
+        RequiredLowPass INT, 
+        RequiredMissionTime DECIMAL
+    )
+
+    If @Id IS NULL OR @Id = 0
+    BEGIN
+        INSERT INTO Requirement
+        Select * from @TempRequirement
+
+        SET @Id = SCOPE_IDENTITY()
+
+        select * from FlightRequirement
+
+        INSERT INTO FlightRequirement
+        Select @Id, RequiredLaunches, RequiredRecoveries, RequiredLowPass, RequiredMissionTime
+        FROM @TempFlightRequirement
+    END
+    ELSE
+    BEGIN
+        UPDATE Requirement
+        Set Name = (Select Name from @TempRequirement),
+        DaysValid = (Select DaysValid from @TempRequirement),
+        NeverExpiresFlag = (Select NeverExpiresFlag from @TempRequirement)
+        WHERE Id = @Id
+
+        Update FlightRequirement
+        Set RequiredLaunches = (select RequiredLaunches from @TempFlightRequirement),
+        RequiredRecoveries = (select RequiredRecoveries from @TempFlightRequirement),
+        RequiredLowPass = (select RequiredLowPass from @TempFlightRequirement),
+        RequiredMissionTime = (Select RequiredMissionTime from @TempFlightRequirement)
+        WHERE Id = @Id
+    END
+
+    SELECT (Select 
+    Requirement.DaysValid,
+    Requirement.Name,
+    Requirement.NeverExpiresFlag,
+    FlightRequirement.*
+    FROM Requirement 
+    join FlightRequirement on FlightRequirement.ID = Requirement.ID
+    where Requirement.ID = @Id
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+    
+END TRY
+BEGIN CATCH
+    SELECT(Select ERROR_NUMBER() As ErrorNumber,
+    ERROR_MESSAGE() As ErrorMessage
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
+END CATCH 
+
+
+GO
+
+
 CREATE PROCEDURE sp_addRequirement
 @json VARCHAR(MAX)
 AS
