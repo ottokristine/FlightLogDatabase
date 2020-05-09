@@ -237,10 +237,11 @@ CREATE PROCEDURE sp_getRequirements
 as 
 BEGIN TRY
     SELECT (Select 
-    Requirement.DaysValid,
-    Requirement.Name,
-    Requirement.NeverExpiresFlag,
-    FlightRequirement.*
+    Requirement.*,
+    FlightRequirement.RequiredLaunches,
+    FlightRequirement.RequiredRecoveries,
+    FlightRequirement.RequiredLowPass,
+    FlightRequirement.RequiredMissionTime
     FROM Requirement 
     LEFT join FlightRequirement on FlightRequirement.ID = Requirement.ID
     FOR JSON PATH) as json
@@ -417,10 +418,11 @@ CREATE PROCEDURE sp_getRequirementsForRole
 AS
 BEGIN TRY
     SELECT (Select 
-    r.DaysValid,
-    r.Name,
-    r.NeverExpiresFlag,
-    FlightRequirement.*
+    r.*,
+    FlightRequirement.RequiredLaunches,
+    FlightRequirement.RequiredRecoveries,
+    FlightRequirement.RequiredLowPass,
+    FlightRequirement.RequiredMissionTime
     FROM RoleRequirements rr
     JOIN Requirement r ON r.ID = rr.RequirementID
     LEFT JOIN FlightRequirement on FlightRequirement.ID = r.ID
