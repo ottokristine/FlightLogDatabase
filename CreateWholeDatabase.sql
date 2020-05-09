@@ -237,8 +237,14 @@ GO
 CREATE PROCEDURE sp_getRequirements
 as 
 BEGIN TRY
-    SELECT (SELECT * FROM Requirement
-    FOR JSON PATH) as json
+    SELECT (Select 
+    Requirement.DaysValid,
+    Requirement.Name,
+    Requirement.NeverExpiresFlag,
+    FlightRequirement.*
+    FROM Requirement 
+    LEFT join FlightRequirement on FlightRequirement.ID = Requirement.ID
+    FOR JSON PATH, WITHOUT_ARRAY_WRAPPER) as json
 END TRY
 BEGIN CATCH
     SELECT(Select ERROR_NUMBER() As ErrorNumber,
@@ -404,14 +410,20 @@ END CATCH
 
 Go
 
+
 --gets all of the requirements for a role
 CREATE PROCEDURE sp_getRequirementsForRole
 @RoleId INT
 AS
 BEGIN TRY
-    SELECT (SELECT r.*
+    SELECT (Select 
+    Requirement.DaysValid,
+    Requirement.Name,
+    Requirement.NeverExpiresFlag,
+    FlightRequirement.*
     FROM RoleRequirements rr
     JOIN Requirement r ON r.ID = rr.RequirementID
+    LEFT JOIN FlightRequirement on FlightRequirement.ID = Requirement.ID
     WHERE rr.RoleID = @RoleId
     FOR JSON PATH) as json
 END TRY
