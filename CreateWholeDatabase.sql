@@ -12,9 +12,12 @@ EXEC sp_addrolemember N'db_owner', N'user'
 
 GO
 
-Use [CurrencyTracker]
+EXEC xp_instance_regwrite N'HKEY_LOCAL_MACHINE', 
+N'Software\Microsoft\MSSQLServer\MSSQLServer', N'LoginMode', REG_DWORD, 2
+GO
 
 Use [CurrencyTracker]
+
 
 CREATE TABLE Bulletin (
     ID INT IDENTITY(1,1) PRIMARY KEY,
