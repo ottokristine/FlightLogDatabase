@@ -558,6 +558,7 @@ BEGIN TRY
         SELECT TOP 1 @RequirementId = requirementId From @RequirementTable
         SELECT TOP 1 @DaysValid = DaysValid From @RequirementTable
         SELECT TOP 1 @NeverExpiresFlag = NeverExpiresFlag From @RequirementTable
+        SET @Test = NULL
 
         --deal with the requirements that never expire
         IF @NeverExpiresFlag = 1
@@ -636,8 +637,6 @@ BEGIN TRY
                 ON a.ID = ra.ActivityId
                 JOIN [Log] l
                 ON l.CrewID = @CrewId AND l.ActivityId = a.ID
-                JOIN FlightLog f
-                ON f.ID = l.ID
                 WHERE ra.RequirementId = @RequirementId
 
                 IF @MaxDate >= DATEADD(DD, ((@DaysValid)*-1),SYSDATETIME())
